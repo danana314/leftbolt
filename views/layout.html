@@ -58,23 +58,9 @@
   </div>
 </div>
 
-<div class="container-fluid">
-  <div class="span3">
-    <div class="well sidebar-nav">
-      <ul class="nav nav-list">
-        <li class="nav-header">Registered Users</li>
-        <% for(var i=0; i < users.length; i++){ %>
-        <li class="callbutton" data-userid="<%= users[i].id %>"><a href="#"><%= users[i].name %></a></li>
-        <% } %>
-      </ul>
-    </div>
-  </div> 
-  <hr>    
-</div>
-
 <script>
   var vlineClient = (function() {
-    var client, vlinesession,
+    var client,
         authToken = '<%= jwt %>',
         serviceId = '<%= serviceId %>',
         profile = {"displayName": '<%= ses.user.name %>', "id": '<%= ses.user.id %>'};
@@ -89,16 +75,21 @@
     console.log('vLine client created');
 
     // Add event handlers
-    client.on('login', onLogin);
+    //client.on('login', onLogin);
     client.on('add:mediaSession', onMediaSession, this);
 
     // Login
-    client.login(serviceId, profile, authToken).done( function (sess) {
-      console.log('login done');
-      session = sess;
-      localPerson = session.getLocalPerson();
-      connect();
-    });
+    client.login(serviceId, profile, authToken).
+    done(
+     function(result) {
+      session = s;
+      onLogin();
+      console.log("Got result: " + result);
+     }, this).
+   fail(
+     function(err) {
+      console.log("Got an error: " + err.message);
+     }, this);
     console.log('after login');
 
     // Handle new media session
@@ -116,27 +107,33 @@
       mediaSession.start();
       console.log('auto accepting incoming call');
     }
-    
 
-    function connect() {
-      console.log('connect');
+    // Successful login
+    function onLogin() {
+      console.log('onLogin');
+      //session = ses;
 
+      localPerson = session.getLocalPerson();
+      console.log(localPerson);
+
+      
       // See if other person is online and start call immediately.
       // The other person will auto accept
-      session.getPerson(REMOTE_USER_ID).done(function(p) {
+      //session.getPerson(REMOTE_USER_ID);
+      /*.done(function(p) {
 
         // This shows a local video while you wait for the other user
         // to show up
-        client.getLocalStream().done(function(s) {
-          localStream = s;
-          console.log('Local stream: ' + s.getId());
+        // client.getLocalStream().done(function(s) {
+        //   localStream = s;
+        //   console.log('Local stream: ' + s.getId());
 
-          // NOTE: If you want to layout the video elements in a custom manner, you can use
-          // stream.createVideoElement() to create a video element here:
-          // https://vline.com/developer/docs/vline.js/vline.MediaStream#createVideoElement
-        }).fail(function (error) {
-              console.log('error: ' + error.message + ' type: ' + error.type);
-        });
+        //   // NOTE: If you want to layout the video elements in a custom manner, you can use
+        //   // stream.createVideoElement() to create a video element here:
+        //   // https://vline.com/developer/docs/vline.js/vline.MediaStream#createVideoElement
+        // }).fail(function (error) {
+        //       console.log('error: ' + error.message + ' type: ' + error.type);
+        // });
 
         startPeerMediaSession(p);
 
@@ -149,7 +146,7 @@
           }
         });
 
-      }, this);
+      }, this);*/
     }
 
     // Deterministically call other user, for example userA will always call userB as userA < userB
@@ -161,60 +158,6 @@
           console.log('Started media session with person: ' + person.getId());
         }
       }
-    }
-    
-    function onLogin(event) {
-      console.log('onLogin');
-      vlinesession = event.target;
-
-      // Find and init call buttons and init them
-      $(".callbutton").each(function (index, element) {
-        initCallButton($(this));
-      });
-    }
-
-    // add event handlers for call button
-    function initCallButton(button) {
-      var userId = button.attr('data-userid');
-
-      // fetch person object associated with username
-      vlinesession.getPerson(userId).done(function (person) {
-        // update button state with presence
-        function onPresenceChange() {
-          if (person.getPresenceState() == 'online') {
-            button.removeClass().addClass('active');
-          } else {
-            button.removeClass();
-          }
-          button.attr('data-presence', person.getPresenceState());
-        }
-
-        // set current presence
-        onPresenceChange();
-
-        // handle presence changes
-        person.on('change', onPresenceChange);
-
-/*
-        // start a call when button is clicked
-        button.click(function () {
-          if (person.getId() == vlinesession.getLocalPersonId()) {
-            alert('You cannot call yourself. Login as another user in an incognito window');
-            return;
-          }
-          if (button.hasClass('active')) {
-            if (vlinesession.getLocalPersonId() == 1) { 
-            // First caller, enable video
-              person.startMedia({"audio": true, "video": true});
-            }
-            else {
-              person.startMedia({"audio": true, "video": false});
-            }
-            
-          }
-        });
-*/
-      });
     }
 
     // Remember to stop local stream and logout when you unload page.
@@ -231,6 +174,7 @@
     vlineClient.logout();
   });
 */
+
 </script>
 
 </body>
