@@ -3,14 +3,14 @@ var express = require('express')
   ,app = express()
   ,server = require('http').Server(app)
   ,io = require('socket.io')(server)
-    ,cookieParser = require('cookie-parser')
-    ,bodyParser = require('body-parser')
-    ,session = require('express-session')
-    ,routes = require('./routes/routehandler');
+  ,cookieParser = require('cookie-parser')
+  ,bodyParser = require('body-parser')
+  ,session = require('express-session')
+  ,routes = require('./routes/routehandler');
 
 // Setup express framework
 app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
+app.set('view engine', 'jade');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
@@ -30,8 +30,7 @@ io.on('connection', function(socket) {
 
 // Routes
 app.get('/', routes.login);
-app.post('/checkin', routes.checkIn);
-app.get('/main', routes.main)
+app.get('/r/:id?', routes.checkin)
 
 var port = 8080;
 server.listen(port, function() {
