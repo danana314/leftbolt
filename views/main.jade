@@ -1,0 +1,54 @@
+!!! 5
+html(lang='en')
+head
+		title Show Me
+		meta(name='viewport', content='width=device-width, initial-scale=1.0, user-scalable=no')
+		link(rel='stylesheet', href='./bootstrap/css/bootstrap.css')
+		link(rel='stylesheet', href='./stylesheets/officewindow.css')
+		script
+			// Get data from server
+			var _officeId = '<%- officeid %>';
+			var _offices = [];
+			<% for(var i=0; i<offices.length; i++) { %>
+			_offices.push({id: '<%- offices[i].id %>', name: '<%- offices[i].name %>', present: false});
+			<% } %>
+	body
+		.container-fluid
+			.row
+				.col-md-1.sidebar
+					ul.nav.nav-sidebar(data-bind='foreach: offices')
+						li(data-bind='css: {active: $data.isPresent}')
+							a(href='#', data-bind='text: $data.name, click: $parent.callOffice')
+					ul.nav.nav-sidebar
+						li
+							a(href='#', data-toggle='collapse', data-target='#settings')
+								| Settings
+								span.caret
+							ul#settings.collapse.nav.nav-sidebar.nav-sidebar-dropdown
+								li
+									a(href='#') Privacy Mode
+								li
+									a(href='#') Dropdown Item
+				//
+					 Main Body 
+				.col-md-8.col-md-offset-1.main
+					//
+						 Videos 
+					.row.video-container
+						.col-md-12
+							video#remote-video.video-remote(autoplay='autoplay')
+							video#local-video.video-local(muted='true', autoplay='autoplay')
+		//
+			 Bootstrap core JavaScript
+					================================================== 
+		//
+			 Placed at the end of the document so the pages load faster
+					<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+					<script src="./bootstrap/js/bootstrap.min.js"></script>
+		script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
+		script(type='text/javascript', src='./bootstrap/js/bootstrap.min.js')
+		script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.1.0.debug.js')
+		script(type='text/javascript', src='http://cdn.peerjs.com/0.3/peer.js')
+		script(type='text/javascript', src='https://cdn.socket.io/socket.io-1.2.0.js')
+		script(type='text/javascript', src='./javascripts/main.js')
+			 
