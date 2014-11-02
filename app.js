@@ -1,37 +1,39 @@
 
 var express = require('express')
-  , routes = require('./routes/routehandler')
-  , http = require('http')
-  , path = require('path');
+  ,app = express()
+  ,server = require('http').Server(app)
+  ,io = require('socket.io')(server)
+    ,cookieParser = require('cookie-parser')
+    ,bodyParser = require('body-parser')
+    ,session = require('express-session')
+    ,routes = require('./routes/routehandler');
 
-var app = express();
+// Setup express framework
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
+app.use(session({ secret: 'dmc'}));
+app.use(express.static(__dirname + '/public'));
 
-app.configure(function(){
-  app.set('port', process.env.PORT || 3000);
-  app.set('views', __dirname + '/views');
-  app.engine('html', require('uinexpress').__express)
-  app.set('view engine', 'html');
-  app.use(express.favicon());
-  app.use(express.logger('dev'));
-  app.use(express.bodyParser());
-  app.use(express.methodOverride());
-  app.use(express.cookieParser('your secret here'));
-  app.use(express.session());
-  app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
-});
+// Socket.io
+io.on('connection', function(socket) {
+  socket.on('RegisterOffice', function(officename) {
+    socket.broadcast.emit('OfficeJoin', officename);
+  });
 
-app.configure('development', function(){
-  app.use(express.errorHandler());
-});
-
-app.get('/', routes.authenticator.checkIn);
-app.post('/trytolog', routes.authenticator.trytolog);
-app.get('/logout', routes.authenticator.logout);
-app.get('/chatroom', function(req, res) {
-  res.render('chatroom');
+  socket.on('disconnect', function() {
+    io.sockets.emit()
+  })
 })
 
-http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'));
+// Routes
+app.get('/', routes.login);
+app.post('/checkin', routes.checkIn);
+app.get('/main', routes.main)
+
+var port = 8080;
+server.listen(port, function() {
+  console.log('server listening on port ' + port);
 });
