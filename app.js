@@ -6,7 +6,8 @@ var express = require('express')
   ,cookieParser = require('cookie-parser')
   ,bodyParser = require('body-parser')
   ,session = require('express-session')
-  ,routes = require('./routes/routehandler');
+  ,routes = require('./routes/routehandler')
+  ,redis = require('redis');
 
 // Setup express framework
 app.set('views', __dirname + '/views');
@@ -16,6 +17,9 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(session({ secret: 'dmc'}));
 app.use(express.static(__dirname + '/public'));
+
+// Setup Redis
+var redisClient = redis.createClient();
 
 // Socket.io
 io.on('connection', function(socket) {
