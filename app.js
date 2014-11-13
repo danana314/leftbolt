@@ -5,9 +5,7 @@ var express = require('express')
   ,io = require('socket.io')(server)
   ,cookieParser = require('cookie-parser')
   ,bodyParser = require('body-parser')
-  ,session = require('express-session')
-  ,routes = require('./routes/routehandler')
-  ,redis = require('redis');
+  ,session = require('express-session');
 
 // Setup express framework
 app.set('views', __dirname + '/views');
@@ -18,13 +16,10 @@ app.use(cookieParser());
 app.use(session({ secret: 'dmc'}));
 app.use(express.static(__dirname + '/public'));
 
-// Setup Redis
-var redisClient = redis.createClient();
-
 // Socket.io
 io.on('connection', function(socket) {
-  socket.on('RegisterOffice', function(officename) {
-    socket.broadcast.emit('OfficeJoin', officename);
+  socket.on('helperRegister', function(helperId) {
+    socket.broadcast.emit('helperJoin', helperId);
   });
 
   socket.on('disconnect', function() {
@@ -33,9 +28,11 @@ io.on('connection', function(socket) {
 })
 
 // Routes
+var routes = require('./lib/routes');
 app.get('/', routes.login);
 app.get('/r/:id?', routes.checkin)
 
+// Start server
 var port = 8080;
 server.listen(port, function() {
   console.log('server listening on port ' + port);
