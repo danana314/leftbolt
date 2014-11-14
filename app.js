@@ -25,6 +25,11 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('join', data.isuser);
   });
 
+  // Start listening for mouse move events
+  socket.on('mousemove', function (data) {
+    socket.broadcast.emit('moving', data);
+  });
+
   socket.on('disconnect', function() {
     //io.sockets.emit();
   })

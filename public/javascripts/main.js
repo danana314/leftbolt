@@ -15,12 +15,18 @@
   socket.on('connect', function() {
     socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
 
+    // Listen for people joining
     socket.on('join', function(isuser) {
       console.log(isuser);
       if (isuser==="0") {
         var helperid = App.roomid + '_h';
         var call = App.peer.call(helperid, App.localStream);
       }
+    });
+
+    // Listen for mouse move events
+    socket.on('mousemove', function (data) {
+        socket.broadcast.emit('moving', data);
     });
   });
 
@@ -61,5 +67,85 @@
   App.peer.on('error', function(err){
     alert('Call receive failed: ' + err.message);
   });
+
+
+  // --------------------
+  // Drawing
+  // --------------------
+
+  // Require canvas support
+  if(!('getContext' in document.createElement('canvas'))){
+    alert('Sorry, it looks like your browser does not support canvas!');
+    return false;
+  }
+
+  var doc = $(document),
+    win = $(window),
+    canvas = $('#paper'),
+    ctx = canvas.getContext("2d");
+
+  var vid = document.getElementById("remote-video");
+  //var canvas = document.getElementById("paper");
+  canvas.height = vid.height;
+  canvas.width  = vid.width;
+
+  // A flag for drawing activity
+  var drawing = false;
+
+  socket.on('moving', function (data) {
+    console.log(data);
+    if(data.drawing){
+      drawLine(data.xi, data.yi, data.xf, data.yf);
+    }
+  });
+
+  var prev = {};
+
+  canvas.on('mousedown',function(e) {
+    e.preventDefault();
+    drawing = true;
+    prev.x = e.pageX;
+    prev.y = e.pageY;
+
+  });
+
+  doc.bind('mouseup mouseleave',function() {
+    drawing = false;
+  });
+
+  var lastEmit = $.now();
+
+  doc.on('mousemove',function(e) {
+    if($.now() - lastEmit > 30) {
+      socket.emit('mousemove',
+        {
+          'xi': prev.x,
+          'yi': prev.y,
+          'xf': e.pageX,
+          'yf': e.pageY,
+          'drawing': drawing
+        }
+      );
+
+      // Draw a line for current user's movement (not broadcast back)
+      if(drawing) {
+        drawLine(prev.x, prev.y, e.pageX, e.pageY);
+
+        prev.x = e.pageX;
+        prev.y = e.pageY;
+      }
+
+      lastEmit = $.now();
+    }
+    
+    
+  });
+
+
+  function drawLine(xi, yi, xf, yf){
+      ctx.moveTo(xi, yi);
+      ctx.lineTo(xf, yf);
+      ctx.stroke();
+  }
 
 })(this);

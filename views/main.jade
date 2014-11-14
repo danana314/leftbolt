@@ -11,10 +11,9 @@ head
 			var _roomid = !{roomid};
 
 	body
-		.container-fluid
-			.main
-				.row.video-container
-					video#remote-video.video-remote(autoplay='autoplay')
+		.container-fluid.main.row.video-container
+			video#remote-video.video-remote(autoplay='autoplay')
+			canvas#paper.drawing-surface
 
 		script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
 		script(type='text/javascript', src='/bootstrap/js/bootstrap.min.js')

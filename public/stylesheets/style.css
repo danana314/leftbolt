@@ -21,3 +21,10 @@
   /*height: 100%;*/
   z-index: 1;
 }
+
+.drawing-surface {
+  position: fixed;
+  top: 0px;
+  right: 0px;
+  z-index: 100;
+}
