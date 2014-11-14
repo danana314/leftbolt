@@ -4,8 +4,8 @@ html(lang="en")
 		title Show Me
 
 		link(rel='stylesheet', href='./bootstrap/css/bootstrap.css')
-		script(src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
-		script(src='./bootstrap/js/bootstrap.min.js')
+		script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
+		script(type='text/javascript', src='/bootstrap/js/bootstrap.min.js')
 		script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.1.0.js')
 
 		style(type='text/css').
@@ -36,22 +36,23 @@ html(lang="en")
 					// Prevent submit 
 					e.preventDefault();
 
-					loc = "./r/" + $("#access_code").val();
-					window.location.href = loc;
+					$.ajax({
+					  url: '/newroom',
+					  type: 'POST',
+					  contentType: "application/json",
+					  async: true,
+					  success: function(data) {
+						if (data.roomid) {
+						  window.location.href = "./r/"+data.roomid+"/1/";
+						}
+					  }
+					});
 				});
-			})
+			});
 
 	body
 		.container
 			form#checkin_form.form-signin
 				div(style="text-align: center;")
-
-					h2.form-signin-heading Enter Code
-					.input-group
-						input#access_code.form-control(type='text')
-						span.input-group-btn
-							button.btn.btn-default(type='submit') Go
-
-					h2.form-signin-heading or
-					a.btn.btn-large.btn-primary(href='/r/') Start new room!
+					button.btn.btn-large.btn-primary(type='submit') Start new room!
 	

@@ -6,26 +6,21 @@
 
   // Create namespace for app-level variables
   App = {};
-  App.userid = _userid;
+  App.isuser = _isuser;
   App.roomid = _roomid;
-
-  if (App.userid.endsWith('u')) {
-    App.userRole = true;
-  }
-  else {
-    App.userRole = false;
-  }
+  App.userid = App.roomid + (App.isuser==="1" ? '_u' : '_h');
 
   // Setup socket.io
   var socket = io();
   socket.on('connect', function() {
-    if (!App.userRole) {
-      socket.emit('helperRegister', {helperId: App.userid });
-    }
+    socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
 
-    socket.on('helperJoin', function(helperId) {
-      console.log(helperId);
-      var call = App.peer.call(helperId, App.localStream);
+    socket.on('join', function(isuser) {
+      console.log(isuser);
+      if (isuser==="0") {
+        var helperid = App.roomid + '_h';
+        var call = App.peer.call(helperid, App.localStream);
+      }
     });
   });
 
@@ -36,7 +31,7 @@
   ]}});
 
 
-  if (App.userRole){
+  if (App.isuser==="1"){
     // Compatibility shim
     navigator.getUserMedia = navigator.getUserMedia
                           || navigator.webkitGetUserMedia

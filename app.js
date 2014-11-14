@@ -17,20 +17,24 @@ app.use(session({ secret: 'dmc'}));
 app.use(express.static(__dirname + '/public'));
 
 // Socket.io
+var db = require('./lib/database');
+
 io.on('connection', function(socket) {
-  socket.on('helperRegister', function(helperId) {
-    socket.broadcast.emit('helperJoin', helperId);
+  socket.on('register', function(data) {
+    db.set(data.roomid, data.isuser==="1" ? "user present" : "helper present", "true");
+    socket.broadcast.emit('join', data.isuser);
   });
 
   socket.on('disconnect', function() {
-    io.sockets.emit()
+    //io.sockets.emit();
   })
 })
 
 // Routes
 var routes = require('./lib/routes');
 app.get('/', routes.login);
-app.get('/r/:id?', routes.checkin)
+app.post('/newroom', routes.newroom);
+app.get('/r/:id/:isuser', routes.checkin);
 
 // Start server
 var port = 8080;
