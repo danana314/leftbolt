@@ -22,7 +22,7 @@
 
     // Listen for mouse move events
     socket.on('moving', function (data) {
-      addClick(data.x, data.y, data.dragging);
+      addClick(data.xpercent*canvas.width, data.ypercent*canvas.height, data.dragging);
       drawNew();
     });
 
@@ -95,7 +95,11 @@
   // Drawing
   // --------------------
 
+  var remoteVid = document.getElementById('remote-video');
   var canvas = document.getElementById('sheet');
+  canvas.width = remoteVid.offsetWidth;
+  canvas.height = remoteVid.offsetHeight;
+
   context = canvas.getContext("2d");
   context.strokeStyle = "#ebe41c";
   context.lineJoin = "round";
@@ -112,7 +116,7 @@
 
   // New point
   function newPoint(x, y, dragging) {
-    socket.emit('mousemove', { x: x, y: y, dragging: dragging });
+    socket.emit('mousemove', { xpercent: x/canvas.width, ypercent: y/canvas.height, dragging: dragging });
     addClick(x, y, dragging);
     drawNew();
   }
