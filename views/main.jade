@@ -1,23 +1,29 @@
 doctype html
-html(lang='en')
+html(lang="en")
 head
-		title Show Me
-		meta(name='viewport', content='width=device-width, initial-scale=1.0, user-scalable=no')
-		link(rel='stylesheet', href='/bootstrap/css/bootstrap.css')
-		link(rel='stylesheet', href='/stylesheets/style.css')
+    title Show Me
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, user-scalable=no')
+    link(rel='stylesheet', href='/bootstrap/css/bootstrap.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
 
-		script(type='text/javascript').
-			var _isuser = !{isuser};
-			var _roomid = !{roomid};
+    script(type='text/javascript').
+        var _isuser = !{isuser};
+        var _roomid = !{roomid};
 
-	body
-		.container-fluid.main.row.video-container
-			video#remote-video.video-remote(autoplay='autoplay')
-			canvas#paper.drawing-surface
+body
+    //- canvas#sheet(width="1280", height="800")
+    .container-fluid.main.row.video-container
+        video#remote-video.video-remote(autoplay='autoplay')
+        canvas#sheet.drawing-surface(width="1280", height="800")
+        .control-menu
+            button#clearCanvas.btn.btn-default
+                span.glyphicon.glyphicon-trash
+            button#sendInvite.btn.btn-default
+                span.glyphicon.glyphicon-envelope
 
-		script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
-		script(type='text/javascript', src='/bootstrap/js/bootstrap.min.js')
-		script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.1.0.debug.js')
-		script(type='text/javascript', src='http://cdn.peerjs.com/0.3/peer.js')
-		script(type='text/javascript', src='https://cdn.socket.io/socket.io-1.2.0.js')
-		script(type='text/javascript', src='/javascripts/main.js')
+    script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
+    script(type='text/javascript', src='/bootstrap/js/bootstrap.min.js')
+    script(type='text/javascript', src='http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.1.0.debug.js')
+    script(type='text/javascript', src='http://cdn.peerjs.com/0.3/peer.js')
+    script(type='text/javascript', src='https://cdn.socket.io/socket.io-1.2.0.js')
+    script(type='text/javascript', src='/javascripts/main.js')

@@ -1,8 +1,4 @@
-(function(exports){
-
-  String.prototype.endsWith = function(suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
-  };
+(function(){
 
   // Create namespace for app-level variables
   App = {};
@@ -25,9 +21,15 @@
     });
 
     // Listen for mouse move events
-    socket.on('mousemove', function (data) {
-        socket.broadcast.emit('moving', data);
+    socket.on('moving', function (data) {
+      addClick(data.x, data.y, data.dragging);
+      drawNew();
     });
+
+    // Listen for canvas clear
+    socket.on('clearcanvas', function() {
+      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    })
   });
 
   // Get peer
@@ -37,6 +39,7 @@
   ]}});
 
 
+  // If user, then get video stream (helper doesn't show video)
   if (App.isuser==="1"){
     // Compatibility shim
     navigator.getUserMedia = navigator.getUserMedia
@@ -68,84 +71,154 @@
     alert('Call receive failed: ' + err.message);
   });
 
+  // --------------------
+  // Share Link
+  // --------------------
+  document.getElementById('sendInvite').onclick = sendInvite;
+
+  function sendInvite() {
+    var parser = document.createElement('a');
+    parser.href = document.URL;
+    var sharelink = parser.protocol+'//'+parser.host+'/r/'+App.roomid+'/0/';
+
+    var subject='Show Me';
+    var body="Hi,\n\n"+"Please show me how to do something! Join me at the link below:\n\n"
+      +"    "+sharelink+"\n\n"+"Thanks!";
+    subject=encodeURIComponent(subject);
+    body=encodeURIComponent(body);
+
+    window.open('mailto:?subject='+subject+'&body='+body);
+  }
+
 
   // --------------------
   // Drawing
   // --------------------
 
-  // Require canvas support
-  if(!('getContext' in document.createElement('canvas'))){
-    alert('Sorry, it looks like your browser does not support canvas!');
-    return false;
+  var canvas = document.getElementById('sheet');
+  context = canvas.getContext("2d");
+  context.strokeStyle = "#ebe41c";
+  context.lineJoin = "round";
+  context.lineWidth = 15;
+  context.globalAlpha = 0.1;
+
+  // Clear button
+  document.getElementById('clearCanvas').onclick = clearCanvas;
+
+  var clickX = [];
+  var clickY = [];
+  var clickDrag = [];
+  var paint;
+
+  // New point
+  function newPoint(x, y, dragging) {
+    socket.emit('mousemove', { x: x, y: y, dragging: dragging });
+    addClick(x, y, dragging);
+    drawNew();
   }
 
-  var doc = $(document),
-    win = $(window),
-    canvas = $('#paper'),
-    ctx = canvas.getContext("2d");
+  // Add information where the user clicked at.
+  function addClick(x, y, dragging) {
+      clickX.push(x);
+      clickY.push(y);
+      clickDrag.push(dragging);
+  }
 
-  var vid = document.getElementById("remote-video");
-  //var canvas = document.getElementById("paper");
-  canvas.height = vid.height;
-  canvas.width  = vid.width;
+  function clearCanvas() {
+    // Clears the canvas
+    socket.emit('canvasclear');
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+  }
 
-  // A flag for drawing activity
-  var drawing = false;
+   // Draw the newly added point.
+  function drawNew() {
+      var i = clickX.length - 1
+      if (!clickDrag[i]) {
+          if (clickX.length == 0) {
+              context.beginPath();
+              context.moveTo(clickX[i], clickY[i]);
+              context.stroke();
+          } else {
+              context.closePath();
 
-  socket.on('moving', function (data) {
-    console.log(data);
-    if(data.drawing){
-      drawLine(data.xi, data.yi, data.xf, data.yf);
-    }
-  });
-
-  var prev = {};
-
-  canvas.on('mousedown',function(e) {
-    e.preventDefault();
-    drawing = true;
-    prev.x = e.pageX;
-    prev.y = e.pageY;
-
-  });
-
-  doc.bind('mouseup mouseleave',function() {
-    drawing = false;
-  });
-
-  var lastEmit = $.now();
-
-  doc.on('mousemove',function(e) {
-    if($.now() - lastEmit > 30) {
-      socket.emit('mousemove',
-        {
-          'xi': prev.x,
-          'yi': prev.y,
-          'xf': e.pageX,
-          'yf': e.pageY,
-          'drawing': drawing
-        }
-      );
-
-      // Draw a line for current user's movement (not broadcast back)
-      if(drawing) {
-        drawLine(prev.x, prev.y, e.pageX, e.pageY);
-
-        prev.x = e.pageX;
-        prev.y = e.pageY;
+              context.beginPath();
+              context.moveTo(clickX[i], clickY[i]);
+              context.stroke();
+          }
+      } else {
+          context.lineTo(clickX[i], clickY[i]);
+          context.stroke();
       }
-
-      lastEmit = $.now();
-    }
-    
-    
-  });
-
-
-  function drawLine(xi, yi, xf, yf){
-      ctx.moveTo(xi, yi);
-      ctx.lineTo(xf, yf);
-      ctx.stroke();
   }
+
+  function mouseDownEventHandler(e) {
+      paint = true;
+      var x = e.pageX - canvas.offsetLeft;
+      var y = e.pageY - canvas.offsetTop;
+      if (paint) {
+          newPoint(x, y, false);
+          //drawNew();
+      }
+  }
+
+  function touchstartEventHandler(e) {
+      paint = true;
+      if (paint) {
+          newPoint(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, false);
+          //drawNew();
+      }
+  }
+
+  function mouseUpEventHandler(e) {
+      context.closePath();
+      paint = false;
+  }
+
+  function mouseMoveEventHandler(e) {
+      var x = e.pageX - canvas.offsetLeft;
+      var y = e.pageY - canvas.offsetTop;
+      if (paint) {
+          newPoint(x, y, true);
+          //drawNew();
+      }
+  }
+
+  function touchMoveEventHandler(e) {
+      if (paint) {
+          newPoint(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, true);
+          //drawNew();
+      }
+  }
+
+  function setUpHandler(isMouseandNotTouch, detectEvent) {
+      removeRaceHandlers();
+      if (isMouseandNotTouch) {
+          canvas.addEventListener('mouseup', mouseUpEventHandler);
+          canvas.addEventListener('mousemove', mouseMoveEventHandler);
+          canvas.addEventListener('mousedown', mouseDownEventHandler);
+          mouseDownEventHandler(detectEvent);
+      } else {
+          canvas.addEventListener('touchstart', touchstartEventHandler);
+          canvas.addEventListener('touchmove', touchMoveEventHandler);
+          canvas.addEventListener('touchend', mouseUpEventHandler);
+          touchstartEventHandler(detectEvent);
+      }
+  }
+
+  function mouseWins(e) {
+      setUpHandler(true, e);
+  }
+
+  function touchWins(e) {
+      setUpHandler(false, e);
+  }
+
+  function removeRaceHandlers() {
+      canvas.removeEventListener('mousedown', mouseWins);
+      canvas.removeEventListener('touchstart', touchWins);
+  }
+
+  canvas.addEventListener('mousedown', mouseWins);
+  canvas.addEventListener('touchstart', touchWins);
 
 })(this);

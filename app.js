@@ -25,10 +25,15 @@ io.on('connection', function(socket) {
     socket.broadcast.emit('join', data.isuser);
   });
 
-  // Start listening for mouse move events
-  socket.on('mousemove', function (data) {
+  // Listen for mouse move events
+  socket.on('mousemove', function(data) {
     socket.broadcast.emit('moving', data);
   });
+
+  // Listen for clear events
+  socket.on('canvasclear', function() {
+    socket.broadcast.emit('clearcanvas');
+  })
 
   socket.on('disconnect', function() {
     //io.sockets.emit();
@@ -40,6 +45,7 @@ var routes = require('./lib/routes');
 app.get('/', routes.login);
 app.post('/newroom', routes.newroom);
 app.get('/r/:id/:isuser', routes.checkin);
+app.get('/canvas', function(req, res) { res.render('canvas.jade');});
 
 // Start server
 var port = 8080;
