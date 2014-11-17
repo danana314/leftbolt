@@ -41,10 +41,50 @@
 
   // If user, then get video stream (helper doesn't show video)
   if (App.isuser==="1"){
-    // Compatibility shim
-    navigator.getUserMedia = navigator.getUserMedia
-                          || navigator.webkitGetUserMedia
-                          || navigator.mozGetUserMedia;
+    // Compatibility shim between diff browser implementations
+    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+    MediaStreamTrack.getSources(function(sourceInfos) {
+      var videoSource = null;
+      for (var i = 0; i != sourceInfos.length; ++i) {
+        var sourceInfo = sourceInfos[i];
+        if (sourceInfo.kind == 'video') {
+          videoSource = sourceInfo.id;
+
+          if (sourceInfo.facing.indexOf('environment') > -1 ||
+              sourceInfo.facing.indexOf('back') > -1        ||
+              sourceInfo.label.indexOf('environment') > -1  ||
+              sourceInfo.label.indexOf('back') > -1) {
+
+            videoSource = sourceInfo.id;
+            break;
+          }
+        }
+      }
+
+      sourceSelected(videoSource);
+    });
+
+    function sourceSelected(videoSource) {
+      var constraints = {
+        audio: true,
+        video: {
+          optional: [{sourceId: videoSource}]
+        }
+      };
+
+      navigator.getUserMedia(constraints, function(stream){
+        //$('#local-video').prop('src', URL.createObjectURL(stream));
+        App.localStream = stream;
+
+        // Let other offices know you have joined
+        //socket.emit('register', { officeId: App.officeId });
+
+        $('#remote-video').prop('src', URL.createObjectURL(stream));
+      }, function(){ alert('Cannot access camera/mic'); });
+    }
+
+    /*
     // Get audio/video stream
     navigator.getUserMedia({audio: true, video: true}, function(stream){
       //$('#local-video').prop('src', URL.createObjectURL(stream));
@@ -55,6 +95,7 @@
 
       $('#remote-video').prop('src', URL.createObjectURL(stream));
     }, function(){ alert('Cannot access camera/mic'); });
+    */
   }
   
 
