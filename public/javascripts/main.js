@@ -9,7 +9,7 @@
   // Setup socket.io
   var socket = io();
   socket.on('connect', function() {
-    socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
+    //socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
 
     // Listen for people joining
     socket.on('join', function(isuser) {
@@ -17,6 +17,10 @@
       if (isuser==="0") {
         var helperid = App.roomid + '_h';
         var call = App.peer.call(helperid, App.localStream);
+        call.on('stream', function(stream) {
+          var audio = document.getElementById("helper-audio");
+          audio.src = URL.createObjectURL(stream);
+        });
       }
     });
 
@@ -29,7 +33,7 @@
     // Listen for canvas clear
     socket.on('clearcanvas', function() {
       context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    })
+    });
   });
 
   // Get peer
@@ -39,11 +43,16 @@
   ]}});
 
 
+  // Get user media
+  // Compatibility shim between diff browser implementations
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+  // Define video sources
+  var constraints = {audio: true, video: false };
+
   // If user, then get video stream (helper doesn't show video)
   if (App.isuser==="1"){
-    // Compatibility shim between diff browser implementations
-    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
+    
     MediaStreamTrack.getSources(function(sourceInfos) {
       var videoSource = null;
       for (var i = 0; i != sourceInfos.length; ++i) {
@@ -62,49 +71,38 @@
         }
       }
 
-      sourceSelected(videoSource);
+      constraints.video = { optional: [{sourceId: videoSource}] };
     });
-
-    function sourceSelected(videoSource) {
-      var constraints = {
-        audio: true,
-        video: {
-          optional: [{sourceId: videoSource}]
-        }
-      };
-
-      navigator.getUserMedia(constraints, function(stream){
-        //$('#local-video').prop('src', URL.createObjectURL(stream));
-        App.localStream = stream;
-
-        // Let other offices know you have joined
-        //socket.emit('register', { officeId: App.officeId });
-
-        $('#remote-video').prop('src', URL.createObjectURL(stream));
-      }, function(){ alert('Cannot access camera/mic'); });
-    }
-
-    /*
-    // Get audio/video stream
-    navigator.getUserMedia({audio: true, video: true}, function(stream){
-      //$('#local-video').prop('src', URL.createObjectURL(stream));
+    
+    navigator.getUserMedia(constraints, function(stream){
       App.localStream = stream;
 
-      // Let other offices know you have joined
-      //socket.emit('register', { officeId: App.officeId });
+      var vid = document.getElementById("active-video");
+      vid.src = URL.createObjectURL(stream);
+      vid.muted = true;
+      //$('#active-video').prop('src', URL.createObjectURL(stream));
 
-      $('#remote-video').prop('src', URL.createObjectURL(stream));
+      socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
+
+
     }, function(){ alert('Cannot access camera/mic'); });
-    */
   }
-  
+  else if (App.user==="0") {
+    navigator.getUserMedia(constraints, function(stream){
+      App.localStream = stream;
+
+      socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
+
+    }, function(){ alert('Cannot access camera/mic'); });
+  }
+
 
   // Receiving a call
   App.peer.on('call', function(call){
     call.answer(App.localStream);  // Answer call automatically
 
     call.on('stream', function(stream){
-      $('#remote-video').prop('src', URL.createObjectURL(stream));
+      $('#active-video').prop('src', URL.createObjectURL(stream));
     });
   });
 
@@ -123,8 +121,8 @@
     var sharelink = parser.protocol+'//'+parser.host+'/r/'+App.roomid+'/0/';
 
     var subject='Show Me';
-    var body="Hi,\n\n"+"Please show me how to do something! Join me at the link below:\n\n"
-      +"    "+sharelink+"\n\n"+"Thanks!";
+    var body="Hi,\n\n"+"Please show me how to do something! Join me at the link below:\n\n" +
+      "    "+sharelink+"\n\n"+"Thanks!";
     subject=encodeURIComponent(subject);
     body=encodeURIComponent(body);
 
@@ -136,7 +134,7 @@
   // Drawing
   // --------------------
 
-  var remoteVid = document.getElementById('remote-video');
+  var remoteVid = document.getElementById('active-video');
   var canvas = document.getElementById('sheet');
   canvas.width = remoteVid.offsetWidth;
   canvas.height = remoteVid.offsetHeight;
