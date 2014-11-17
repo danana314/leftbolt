@@ -147,12 +147,13 @@
   context.lineWidth = 15;
   context.globalAlpha = 0.1;
 
-  // Clear button
+  // Clear user indications
   document.getElementById('clearCanvas').onclick = clearCanvas;
+  function timeoutIndications() {
 
-  var clickX = [];
-  var clickY = [];
-  var clickDrag = [];
+  }
+
+  var trails = [];
   var paint;
 
   // New point
@@ -164,9 +165,12 @@
 
   // Add information where the user clicked at.
   function addClick(x, y, dragging) {
-      clickX.push(x);
-      clickY.push(y);
-      clickDrag.push(dragging);
+    var trailObj = new Object();
+    trailObj.x = x;
+    trailObj.y = y;
+    trailObj.dragging = dragging;
+    trailObj.time = Date.now();
+    trails.push(trailObj);
   }
 
   function clearCanvas() {
@@ -177,23 +181,23 @@
 
    // Draw the newly added point.
   function drawNew() {
-      var i = clickX.length - 1
-      if (!clickDrag[i]) {
-          if (clickX.length == 0) {
-              context.beginPath();
-              context.moveTo(clickX[i], clickY[i]);
-              context.stroke();
-          } else {
-              context.closePath();
+    var i = trails.length - 1
+    if (!trails[i].dragging) {
+        if (trails.length == 0) {
+            context.beginPath();
+            context.moveTo(trails[i].x, trails[i].y);
+            context.stroke();
+        } else {
+            context.closePath();
 
-              context.beginPath();
-              context.moveTo(clickX[i], clickY[i]);
-              context.stroke();
-          }
-      } else {
-          context.lineTo(clickX[i], clickY[i]);
-          context.stroke();
-      }
+            context.beginPath();
+            context.moveTo(trails[i].x, trails[i].y);
+            context.stroke();
+        }
+    } else {
+        context.lineTo(trails[i].x, trails[i].y);
+        context.stroke();
+    }
   }
 
   function mouseDownEventHandler(e) {
@@ -217,6 +221,7 @@
   function mouseUpEventHandler(e) {
       context.closePath();
       paint = false;
+      setTimeout(clearCanvas, 1500);
   }
 
   function mouseMoveEventHandler(e) {
