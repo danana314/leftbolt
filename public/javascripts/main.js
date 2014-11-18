@@ -20,6 +20,7 @@
         call.on('stream', function(stream) {
           var audio = document.getElementById("helper-audio");
           audio.src = URL.createObjectURL(stream);
+          audio.autoplay = true;
         });
       }
     });
@@ -70,24 +71,23 @@
           }
         }
       }
-
       constraints.video = { optional: [{sourceId: videoSource}] };
+      navigator.getUserMedia(constraints, function(stream){
+        App.localStream = stream;
+
+        var vid = document.getElementById("active-video");
+        vid.src = URL.createObjectURL(stream);
+        vid.muted = true;
+        //$('#active-video').prop('src', URL.createObjectURL(stream));
+
+        socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
+
+
+      }, function(){ alert('Cannot access camera/mic'); });
+
     });
-    
-    navigator.getUserMedia(constraints, function(stream){
-      App.localStream = stream;
-
-      var vid = document.getElementById("active-video");
-      vid.src = URL.createObjectURL(stream);
-      vid.muted = true;
-      //$('#active-video').prop('src', URL.createObjectURL(stream));
-
-      socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
-
-
-    }, function(){ alert('Cannot access camera/mic'); });
   }
-  else if (App.user==="0") {
+  else if (App.isuser==="0") {
     navigator.getUserMedia(constraints, function(stream){
       App.localStream = stream;
 
