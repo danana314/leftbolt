@@ -33,7 +33,7 @@
 
     // Listen for canvas clear
     socket.on('clearcanvas', function() {
-      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+      clearCanvas();
     });
   });
 
@@ -146,13 +146,10 @@
   context.globalAlpha = 0.1;
 
   // Clear user indications
-  document.getElementById('clearCanvas').onclick = clearCanvas;
-  function timeoutIndications() {
-
-  }
+  document.getElementById('clearCanvas').onclick = clearCanvasNotify;
 
   var trails = [];
-  var paint;
+  var isDrawing;
 
   // New point
   function newPoint(x, y, dragging) {
@@ -171,9 +168,12 @@
     trails.push(trailObj);
   }
 
+  function clearCanvasNotify() {
+    socket.emit('canvasclear');
+    clearCanvas();    
+  }
   function clearCanvas() {
     // Clears the canvas
-    socket.emit('canvasclear');
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
   }
 
@@ -199,18 +199,18 @@
   }
 
   function mouseDownEventHandler(e) {
-      paint = true;
+      isDrawing = true;
       var x = e.pageX - canvas.offsetLeft;
       var y = e.pageY - canvas.offsetTop;
-      if (paint) {
+      if (isDrawing) {
           newPoint(x, y, false);
           //drawNew();
       }
   }
 
   function touchstartEventHandler(e) {
-      paint = true;
-      if (paint) {
+      isDrawing = true;
+      if (isDrawing) {
           newPoint(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, false);
           //drawNew();
       }
@@ -218,21 +218,21 @@
 
   function mouseUpEventHandler(e) {
       context.closePath();
-      paint = false;
-      setTimeout(clearCanvas, 1500);
+      isDrawing = false;
+      //setTimeout(clearCanvas, 1500);
   }
 
   function mouseMoveEventHandler(e) {
       var x = e.pageX - canvas.offsetLeft;
       var y = e.pageY - canvas.offsetTop;
-      if (paint) {
+      if (isDrawing) {
           newPoint(x, y, true);
           //drawNew();
       }
   }
 
   function touchMoveEventHandler(e) {
-      if (paint) {
+      if (isDrawing) {
           newPoint(e.touches[0].pageX - canvas.offsetLeft, e.touches[0].pageY - canvas.offsetTop, true);
           //drawNew();
       }

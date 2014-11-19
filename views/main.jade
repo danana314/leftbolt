@@ -11,16 +11,17 @@ head
         var _roomid = !{roomid};
 
 body
-    //- canvas#sheet(width="1280", height="800")
     .container-fluid.main.row.video-container
         video#active-video.video-remote(autoplay='autoplay')
         audio#helper-audio
         canvas#sheet.drawing-surface
-        .control-menu
-            button#clearCanvas.btn.btn-default
-                span.glyphicon.glyphicon-trash
-            button#sendInvite.btn.btn-default
-                span.glyphicon.glyphicon-envelope
+        nav.navbar.navbar-inverse.navbar-fixed-bottom(role="navigation")
+            .container
+                .control-item
+                    a#clearCanvas
+                        span.glyphicon.glyphicon-trash
+                    a#sendInvite
+                        span.glyphicon.glyphicon-envelope
 
     script(type='text/javascript', src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js')
     script(type='text/javascript', src='/bootstrap/js/bootstrap.min.js')

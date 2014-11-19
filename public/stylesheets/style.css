@@ -29,9 +29,15 @@
   z-index: 100;
 }
 
-.control-menu {
-  position: fixed;
-  top: 0px;
-  right: 0px;
-  z-index:1000;
+.navbar {
+  text-align: center;
+}
+
+.control-item {
+  margin-top: 10px;
+}
+.control-item > a {
+  font-size: 1.7em;
+  margin-left: 20px;
+  margin-right: 20px;
 }
