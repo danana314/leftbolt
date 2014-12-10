@@ -42,7 +42,7 @@ io.on('connection', function(socket) {
 
 // Routes
 var routes = require('./lib/routes');
-app.get('/', routes.login);
+app.get('/', routes.index);
 app.post('/newroom', routes.newroom);
 app.get('/r/:id/:isuser', routes.checkin);
 app.get('/canvas', function(req, res) { res.render('canvas.jade');});
