@@ -1,0 +1,14 @@
+
+/* Logo */
+.lb-logo {
+    color: #FFFFFF !important;
+    font-family: 'Muli', sans-serif;
+    font-size: 15px;
+    font-weight: 300 !important;
+    /*vertical-align: bottom !important;*/
+}
+.logo{
+    width: 50px;
+    height: auto;
+    vertical-align: middle;
+}
