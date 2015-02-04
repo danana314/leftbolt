@@ -48,7 +48,7 @@ app.get('/r/:id/:isuser', routes.checkin);
 app.get('/canvas', function(req, res) { res.render('canvas.jade');});
 
 // Start server
-var port = 8080;
+var port = process.env.PORT; //8080;
 server.listen(port, function() {
   console.log('server listening on port ' + port);
 });
