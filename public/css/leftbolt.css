@@ -1,7 +1,4 @@
-@import url("base.css");
-@import url("components.css");
-
-/* Header Image Background - Change the URL below to your image path (example: ../images/background.jpg) */
+/* Header Image Background */
 
 html,
 body {
@@ -52,4 +49,81 @@ body {
 
 .about {
     padding: 50px 0;
+}
+
+/*
+ * Main content
+ */
+
+@media (min-width: 768px) {
+  .main {
+    padding-right: 40px;
+    padding-left: 40px;
+  }
+}
+
+/*
+ * Video formatting
+ */
+
+.video-remote {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.drawing-surface {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 100;
+}
+
+.navbar {
+  text-align: center;
+}
+
+.control-item {
+  margin-top: 10px;
+}
+.control-item > a {
+  font-size: 1.7em;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+/* Logo */
+.btn-lb {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    color: #FFFFFF;
+    font-size: 14px;
+    font-weight: normal;
+    text-align: center;
+    vertical-align: middle;
+    background: transparent;
+    border: 1px solid #FFFFFF;
+    border-radius: 0px;
+}
+
+.btn-lb :: hover {
+    background: none;
+}
+
+.lb-logo {
+    color: #FFFFFF !important;
+    font-family: 'Muli', sans-serif;
+    font-size: 15px;
+    font-weight: 300 !important;
+    padding: 50px;
+    /*vertical-align: bottom !important;*/
+}
+.logo{
+    width: auto;
+    height: 50px;
+    vertical-align: middle;
 }

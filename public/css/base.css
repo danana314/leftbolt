@@ -5,10 +5,11 @@
     font-family: 'Muli', sans-serif;
     font-size: 15px;
     font-weight: 300 !important;
+    padding: 50px;
     /*vertical-align: bottom !important;*/
 }
 .logo{
-    width: 50px;
-    height: auto;
+    width: auto;
+    height: 50px;
     vertical-align: middle;
 }

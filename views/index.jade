@@ -12,31 +12,11 @@ html(lang='en')
         script(type='text/javascript', src='/js/index.js')
 
     body
-        nav.navbar.navbar-fixed-top
-            .container
-                .navbar-header
-                    button.navbar-toggle(type='button',data-toggle='collapse',data-target='.navbar-collapse')
-                        span.icon-bar
-                        span.icon-bar
-                        span.icon-bar
-                    a.lb-logo.navbar-brand(href='/')
-                        | LEFT
-                        img.logo(src='/img/leftbolt_dark.svg', alt='logo')
-                        | BOLT
-                .collapse.navbar-collapse
-                    ul.nav.navbar-nav.pull-right
-                        li
-                            a(href='#about') About
-                        li
-                            a(href='#contact') Contact
-        
         section#top.header
             .text-vertical-center
                 h1.lb-logo
-                    | LEFT
-                    img.logo(src='/img/leftbolt_dark.svg', alt='logo')
-                    | BOLT
-                button#startRoom.btn-lb Start new room!
+                    img.logo(src='/img/leftbolt_logo_dark.svg', alt='logo')
+                button#startRoom.btn-lb Get Help!
         section#about.about
             .container
                 .row
@@ -58,7 +38,8 @@ html(lang='en')
                 .row
                     .col-lg-12.text-center
                         h2 Contact
-                        p Contact us at info@leftbolt.com
+                        p Contact us at 
+                        a(href='mailto:info@leftbolt.com') info@leftbolt.com
     
     script.
         (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

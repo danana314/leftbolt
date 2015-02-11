@@ -9,7 +9,7 @@ exports.login = function(req, res) {
 	res.render('login');
 };
 
-// POST /checkin
+// POST /newroom
 exports.newroom = function(req, res) {
 	var room = shortid.generate();
 	db.hset(room, "user present", "");
