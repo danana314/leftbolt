@@ -38,10 +38,14 @@
   });
 
   // Get peer
+  /*
   App.peer = new Peer(App.userid , { key: 'aqu2ngp60qr7wrk9', debug: 3, 
     config: {'iceServers': [
     { url: 'stun:stun.l.google.com:19302' } // Pass in optional STUN and TURN server for maximum network compatibility
   ]}});
+  */
+  
+  App.peer = new Peer(App.userid, { host: location.host, port: 9000, path: '/'});
 
 
   // Get user media

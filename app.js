@@ -5,7 +5,8 @@ var express = require('express')
   ,io = require('socket.io')(server)
   ,cookieParser = require('cookie-parser')
   ,bodyParser = require('body-parser')
-  ,session = require('express-session');
+  ,session = require('express-session')
+  ;//,ExpressPeerServer = require('peer').ExpressPeerServer;
 
 // Setup express framework
 app.set('views', __dirname + '/views');
@@ -16,8 +17,12 @@ app.use(cookieParser());
 app.use(session({ secret: 'dmc'}));
 app.use(express.static(__dirname + '/public'));
 
+// Peer Server
+//var options = { debug: true }
+//app.use('/peerjs', ExpressPeerServer(server, options));
+
 // Socket.io
-var db = require('./lib/database');
+var db = require('./app/database');
 
 io.on('connection', function(socket) {
   socket.on('register', function(data) {
@@ -41,7 +46,7 @@ io.on('connection', function(socket) {
 })
 
 // Routes
-var routes = require('./lib/routes');
+var routes = require('./app/routes');
 app.get('/', routes.index);
 app.post('/newroom', routes.newroom);
 app.get('/r/:id/:isuser', routes.checkin);
