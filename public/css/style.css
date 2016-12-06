@@ -1,6 +1,11 @@
 /*
  * Main content
  */
+ 
+html,
+body {
+    background-color:#222;
+}
 
 @media (min-width: 768px) {
   .main {
@@ -31,6 +36,7 @@
 
 .navbar {
   text-align: center;
+  border-width: 0px 0 0;
 }
 
 .control-item {

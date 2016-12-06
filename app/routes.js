@@ -23,7 +23,7 @@ exports.checkin = function(req, res) {
 	var roomid = req.params.id;
 	var isuser = req.params.isuser;
 	if (db.exists(roomid)) {
-		res.render('main', { roomid: JSON.stringify(roomid), isuser: JSON.stringify(isuser) });
+		res.render('chatroom', { roomid: JSON.stringify(roomid), isuser: JSON.stringify(isuser) });
 	}
 	else {
 		res.render('index');

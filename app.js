@@ -6,7 +6,7 @@ var express = require('express')
   ,cookieParser = require('cookie-parser')
   ,bodyParser = require('body-parser')
   ,session = require('express-session')
-  ;//,ExpressPeerServer = require('peer').ExpressPeerServer;
+  ,easyrtc = require('easyrtc');
 
 // Setup express framework
 app.set('views', __dirname + '/views');
@@ -17,9 +17,8 @@ app.use(cookieParser());
 app.use(session({ secret: 'dmc'}));
 app.use(express.static(__dirname + '/public'));
 
-// Peer Server
-//var options = { debug: true }
-//app.use('/peerjs', ExpressPeerServer(server, options));
+//EasyRTC server
+var rtc = easyrtc.listen(app, io);
 
 // Socket.io
 var db = require('./app/database');
@@ -47,10 +46,13 @@ io.on('connection', function(socket) {
 
 // Routes
 var routes = require('./app/routes');
-app.get('/', routes.index);
+app.get('/', function(req, res) {
+	res.render('index');
+};);
 app.post('/newroom', routes.newroom);
 app.get('/r/:id/:isuser', routes.checkin);
 app.get('/canvas', function(req, res) { res.render('canvas.jade');});
+app.get('/easyrtc', function(req, res) {res.render('easyrtctest');});
 
 // Start server
 var port = process.env.PORT; //8080;

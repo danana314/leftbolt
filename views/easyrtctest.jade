@@ -1,0 +1,11 @@
+doctype html
+html
+    head
+        link(rel='stylesheet', type='text/css', href='/easyrtc/easyrtc.css')
+        script(src='/socket.io/socket.io.js')
+        script(type='text/javascript', src='/easyrtc/easyrtc.js')
+        script(type='text/javascript', src='/js/easyrtctest.js')
+    body(onload='my_init()')
+        #otherClients
+        video#self(style='float:left', width='300', height='200')
+        video#caller(style='float:left', width='300', height='200')

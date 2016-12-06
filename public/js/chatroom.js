@@ -2,29 +2,15 @@
 
   // Create namespace for app-level variables
   App = {};
-  App.isuser = _isuser;
+  App.isRequester = _isuser;
   App.roomid = _roomid;
-  App.userid = App.roomid + (App.isuser==="1" ? '_u' : '_h');
+  App.userid = App.roomid + (App.isRequester==="1" ? '_u' : '_h');
+
 
   // Setup socket.io
+  /*
   var socket = io();
   socket.on('connect', function() {
-    //socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
-
-    // Listen for people joining
-    socket.on('join', function(isuser) {
-      console.log(isuser);
-      if (isuser==="0") {
-        var helperid = App.roomid + '_h';
-        var call = App.peer.call(helperid, App.localStream);
-        call.on('stream', function(stream) {
-          var audio = document.getElementById("helper-audio");
-          audio.src = URL.createObjectURL(stream);
-          audio.autoplay = true;
-        });
-      }
-    });
-
     // Listen for mouse move events
     socket.on('moving', function (data) {
       addClick(data.xpercent*canvas.width, data.ypercent*canvas.height, data.dragging);
@@ -36,83 +22,117 @@
       clearCanvas();
     });
   });
-
-  // Get peer
-  /*
-  App.peer = new Peer(App.userid , { key: 'aqu2ngp60qr7wrk9', debug: 3, 
-    config: {'iceServers': [
-    { url: 'stun:stun.l.google.com:19302' } // Pass in optional STUN and TURN server for maximum network compatibility
-  ]}});
   */
+
+
+  // --------------------
+  // WebRTC
+  // --------------------
   
-  App.peer = new Peer(App.userid, { host: location.host, port: 9000, path: '/'});
-
-
-  // Get user media
-  // Compatibility shim between diff browser implementations
-  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-
-  // Define video sources
-  var constraints = {audio: true, video: false };
-
-  // If user, then get video stream (helper doesn't show video)
-  if (App.isuser==="1"){
-    
-    MediaStreamTrack.getSources(function(sourceInfos) {
-      var videoSource = null;
-      for (var i = 0; i != sourceInfos.length; ++i) {
-        var sourceInfo = sourceInfos[i];
-        if (sourceInfo.kind == 'video') {
-          videoSource = sourceInfo.id;
-
-          if (sourceInfo.facing.indexOf('environment') > -1 ||
-              sourceInfo.facing.indexOf('back') > -1        ||
-              sourceInfo.label.indexOf('environment') > -1  ||
-              sourceInfo.label.indexOf('back') > -1) {
-
-            videoSource = sourceInfo.id;
-            break;
-          }
-        }
-      }
-      constraints.video = { optional: [{sourceId: videoSource}] };
-      navigator.getUserMedia(constraints, function(stream){
-        App.localStream = stream;
-
-        var vid = document.getElementById("active-video");
-        vid.src = URL.createObjectURL(stream);
-        vid.muted = true;
-        //$('#active-video').prop('src', URL.createObjectURL(stream));
-
-        socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
-
-
-      }, function(){ alert('Cannot access camera/mic'); });
-
-    });
+  easyrtc.enableVideo(App.isRequester==="1");    // Only enable video for requesting user (helper doesn't show)
+  easyrtc.enableAudio(true);
+  easyrtc.enableDataChannels(true);
+  
+  easyrtc.joinRoom(App.roomid, null, 
+                    function(roomName) {console.log("I'm now in room " + roomName);},
+                    function(errorCode, errorText, roomName) {console.log("had problems joining " + roomName);}
+  );  // Success/fail will not be called since not connected to server
+  easyrtc.setRoomOccupantListener( roomListener);
+  
+  
+  var connectSuccess = function(myId) {
+      console.log("My easyrtcid is " + myId);
+      App.userid = myId;
   }
-  else if (App.isuser==="0") {
-    navigator.getUserMedia(constraints, function(stream){
-      App.localStream = stream;
-
-      socket.emit('register', { roomid: App.roomid, isuser: App.isuser });
-
-    }, function(){ alert('Cannot access camera/mic'); });
+  var connectFailure = function(errorCode, errText) {
+      console.log(errText);
+      alert('Cannot access camera/mic');
   }
-
-
-  // Receiving a call
-  App.peer.on('call', function(call){
-    call.answer(App.localStream);  // Answer call automatically
-
-    call.on('stream', function(stream){
-      $('#active-video').prop('src', URL.createObjectURL(stream));
-    });
+  if (App.isRequester==="1"){
+    easyrtc.initMediaSource(
+          function(){                     // success callback
+              var vid = document.getElementById("active-video");
+              easyrtc.setVideoObjectSrc(vid, easyrtc.getLocalStream());
+              vid.muted = true;           // prevent feedback loop
+              easyrtc.connect("LeftBolt", connectSuccess, connectFailure);
+          },
+          connectFailure
+    );
+  } else if (App.isRequester==="0") {
+    easyrtc.initMediaSource(
+          function(){          // success callback
+              easyrtc.connect("LeftBolt", connectSuccess, connectFailure);
+          },
+          connectFailure
+    );
+  }
+  
+  function roomListener(roomName, otherPeers) {
+    for(var i in otherPeers) {
+      easyrtc.call(
+         i,
+         function(easyrtcid) { console.log("completed call to " + easyrtcid);},
+         function(errorCode, errorText) { console.log("err:" + errorText);},
+         function(accepted, bywho) {
+            console.log((accepted?"accepted":"rejected")+ " by " + bywho);
+         }
+     );
+    }
+  }
+  
+  easyrtc.setStreamAcceptor( function(callerEasyrtcid, stream) {
+    if (callerEasyrtcid == App.userid)
+    {
+      // Don't deal with stream from self.
+      return;
+    }
+    if (App.isRequester==="1") {
+      var audio = document.getElementById("helper-audio");
+      audio.src = URL.createObjectURL(stream);
+      audio.autoplay = true;
+    } else if (App.isRequester==="0") {
+      var vid = document.getElementById("active-video");
+      easyrtc.setVideoObjectSrc(vid, stream);
+    }
   });
 
-  App.peer.on('error', function(err){
-    alert('Call receive failed: ' + err.message);
+  easyrtc.setOnStreamClosed( function (callerEasyrtcid) {
+    if(App.isRequester==="1") {
+      var audio = document.getElementById("helper-audio");
+      audio.src = "";
+    } else if (App.isRequester==="0") {
+      var vid = document.getElementById("active-video");
+      easyrtc.setVideoObjectSrc(vid, "");
+    }
   });
+
+  // Error handler
+  easyrtc.setOnError( function(errEvent) { console.log(errEvent.errorText);});
+
+
+  // --------------------
+  // Setup WebSockets
+  // --------------------
+  var sendDataWSErrorHandler = function(ackMesg) {
+    if( ackMesg.msgType === 'error' ) {
+      console.log(ackMesg.msgData.errorText);
+    }
+  }
+  
+  easyrtc.setPeerListener( function(senderId, msgType, msgData, targeting) {
+    if(msgType === 'canvasClear') {
+      clearCanvas();
+      console.log('msg:' + senderId  + ': canvas clear');
+    } else if (msgType == 'moving') {
+      addClick(msgData.xpercent*canvas.width, msgData.ypercent*canvas.height, msgData.dragging);
+      drawNew();
+      console.log('msg:' + senderId  + ': moving : ' + msgData.xpercent + ' ' + msgData.ypercent + ' ' + msgData.dragging);
+    } else {
+      console.log('msg:' + senderId  + ':' + msgType + ', ' + msgData);
+    }
+  });
+
+
 
   // --------------------
   // Share Link
@@ -157,7 +177,10 @@
 
   // New point
   function newPoint(x, y, dragging) {
-    socket.emit('mousemove', { xpercent: x/canvas.width, ypercent: y/canvas.height, dragging: dragging });
+    //socket.emit('mousemove', { xpercent: x/canvas.width, ypercent: y/canvas.height, dragging: dragging });
+    easyrtc.sendDataWS({targetGroup: App.roomid}, 'moving', 
+      { xpercent: x/canvas.width, ypercent: y/canvas.height, dragging: dragging }, 
+      sendDataWSErrorHandler);
     addClick(x, y, dragging);
     drawNew();
   }
@@ -173,7 +196,8 @@
   }
 
   function clearCanvasNotify() {
-    socket.emit('canvasclear');
+    easyrtc.sendDataWS( {targetGroup: App.roomid}, 'canvasClear', null, sendDataWSErrorHandler);
+    //socket.emit('canvasclear');
     clearCanvas();    
   }
   function clearCanvas() {
